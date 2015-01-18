@@ -1,0 +1,139 @@
+(page "index.html"
+  (:require
+   [meek-mock.rpc :as rpc]
+   [tailrecursion.hoplon.reload :refer [reload-all]]
+   [hoplon.reveal.elements :refer [slideshow intro bullet slide highlight two-column-table chapter]]))
+
+(defelem btn [{:keys [on-click] :as attrs} kids]
+  (button
+   (assoc attrs
+     :on-click (fn [e] (on-click e) (.blur (.-target e))))
+   kids))
+
+(defelem grid [{:keys [width height on-click] :as attrs} _]
+  (let [g (cell (vec (repeat height (vec (repeat width false)))))]
+    (table
+     (tbody
+      (map
+       (fn [x]
+         (tr
+          (map
+           (fn [y]
+             (td :class
+                 (cell= {:grid-cell true
+                         :selected (get-in g [y x])})
+                 (btn :on-click
+                      #(do
+                         (swap! g update-in [y x] not)
+                         (on-click x y)))))
+           (range width))))
+         (range height))))))
+
+(html
+ (head)
+ (body
+  (slideshow
+   (intro
+    (h1 "Functional Music")
+    (h3 "with " (span :class "pink" "Pink") " and " (span :class "blue" "Score"))
+    (bullet "Daniel Neal")
+    (bullet "20th January 2015"))
+
+   (chapter
+    (slide
+     (p (span "Why ")
+        (span :class "fragment pink" "use functional programming techniques to ")
+        (span "write music on computers?"))
+     (p :class "fragment blue" "Abstraction"))
+
+    (slide
+     (img :src "images/schubert.png"))
+
+    (slide
+     (img :src "images/protools.png"))
+
+    (slide
+     (h1 "Abstraction")
+     (p :class "fragment" "Sequence processing")
+     (p :class "fragment" "Function composition")
+     (p :class "fragment" "Higher order functions")))
+
+   (chapter
+    (slide
+     (h2 "Demo 1: the sine wave")
+     (highlight
+      ;;{{
+      (require '[pink.oscillators :refer [sine]])
+      (require '[pink.simple :refer [add-afunc start-engine]])
+
+      (start-engine)
+      (add-afunc (sine 110))
+      ;;}}
+      )
+     (btn :on-click #(rpc/play-sine! 110) "Play")
+     (btn :on-click #(rpc/clear-engine!) "Stop"))
+
+    (slide
+     (p "How is this sound being made?")
+     (img :src "images/sinewave.png")
+     (p :class "pink" "unit generators")))
+
+   (chapter
+    (slide
+     (p "Combining unit generators")
+     (img :src "images/unitgenerators.png"))
+
+    (slide
+     (h2 "Demo 2: a filtered, detuned saw")
+     (highlight
+      ;;{{
+      (defn saw [f]
+        (mul 0.33
+             (butterlp
+              (sum
+               (blit-saw f)
+               (blit-saw (mul f 1.01))
+               (blit-saw (mul f 0.99)))
+              1200)))
+
+      (add-afunc (saw 110))
+      ;;}}
+      )
+     (btn :on-click #(rpc/play-saw! 110) "Play")
+     (btn :on-click #(rpc/clear-engine!) "Stop"))
+
+    (slide
+     (h2 "Demo 3: drum kit")
+     (highlight
+      ;;{{
+      (def kit
+        {:kick #(sum (mul (sine 60)
+                          (env [0.0 1.5 0.03 0.1 0.1 0.0]))
+                     (mul (butterlp (white-noise) 1500)
+                          (env [0.0 0.4 0.05 0.02 0.1 0.0])))
+
+         :hat #(mul (butterhp (butterlp (white-noise) 6000) 3000)
+                    (env [0.0 1.0 0.3 0.0]))
+
+         :snare #(let-s [snare (mul 3 (white-noise) (xar 0.01 0.2))]
+                        (sum snare (butterbp (mul 3 snare) 100 100)))})
+
+       (defn play-kit! [instrument]
+         (engine-add-afunc @e ((kit instrument))))
+      ;;}}
+      )
+     (map (fn [i] (btn :on-click #(do (println i) (rpc/play-kit! i)) (name i))) [:kick :hat :snare])))
+
+  (chapter
+    (slide
+     (grid :width 10 :height 8 :on-click (fn [x y] (println x y))
+
+   ))))))
+
+
+
+
+
+
+
+

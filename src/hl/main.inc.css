@@ -1,0 +1,100 @@
+.reveal {
+  background:#333;
+}
+
+.reveal .slides h1 {
+  font-family: "League Gothic",Impact,sans-serif;
+  text-shadow:none;
+  font-size:3.77em;
+}
+
+.reveal .slides p, .reveal .slides div {
+  font-family:Helvetica;
+  font-size:1.2em;
+  font-weight:lighter;
+  color:#999;
+  letter-spacing:0.1em;
+  margin:1em;
+}
+
+.reveal .fragment:not(.visible) {
+  display:none;
+}
+.reveal .progress span {
+  background: #73314B;
+}
+
+.reveal .slides img {
+  background:none;
+  border:none;
+  box-shadow:none;
+}
+
+.reveal pre {
+  box-shadow:none;
+  font-size:0.8em;
+}
+
+.reveal pre .list, .reveal pre .collection {
+  color:#FFF;
+}
+
+.reveal pre .title {
+  color:#FF61AA;
+}
+
+.reveal pre .built_in {
+  color:#FF61AA;
+}
+
+.reveal pre .number {
+  color:#13DAEC;
+}
+
+.grid-cell {
+  padding:5px;
+}
+
+.grid-cell button {
+  padding:0;
+  margin:0;
+  border:0;
+  width:1em;
+  height:1em;
+  background:#444455;
+}
+
+.grid-cell button:hover, .grid-cell.selected button {
+  background:#13daec;
+}
+
+
+button {
+  padding: 18px 22px;
+  font-size:1.5em;
+  letter-spacing:0.1em;
+  font-variant:caps;
+  font-family: "League Gothic",Impact,sans-serif;
+  border:0;
+  margin:24px;
+  border-radius:4px;
+  border-bottom: 0.1em solid transparent;
+  background:#999;
+  color:#fefefe;
+  outline:none;
+  text-transform: uppercase;
+}
+
+button:hover {
+  color:#73314B;
+  cursor:pointer;
+  border-bottom-color:#73314B;
+}
+
+.blue {
+  color:#13daec !important;
+}
+
+.pink {
+  color:#FF61AA !important;
+}
