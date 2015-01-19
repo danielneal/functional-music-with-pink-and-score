@@ -4,30 +4,32 @@
    [tailrecursion.hoplon.reload :refer [reload-all]]
    [hoplon.reveal.elements :refer [slideshow intro bullet slide highlight two-column-table chapter]]))
 
+
 (defelem btn [{:keys [on-click] :as attrs} kids]
   (button
    (assoc attrs
      :on-click (fn [e] (on-click e) (.blur (.-target e))))
    kids))
 
-(defelem grid [{:keys [width height on-click] :as attrs} _]
-  (let [g (cell (vec (repeat height (vec (repeat width false)))))]
-    (table
-     (tbody
-      (map
-       (fn [x]
-         (tr
-          (map
-           (fn [y]
-             (td :class
-                 (cell= {:grid-cell true
-                         :selected (get-in g [y x])})
-                 (btn :on-click
-                      #(do
-                         (swap! g update-in [y x] not)
-                         (on-click x y)))))
-           (range width))))
-         (range height))))))
+(defelem sequencer [{:keys [pattern-cell on-click] :as attrs} _]
+  (table :class "sequencer"
+   (tbody
+    (map
+     (fn [inst]
+       (tr
+        (td (text "~{inst}"))
+        (map
+         (fn [beat]
+           (td :class
+               (cell= {:grid-cell true
+                       :selected (get-in pattern-cell [inst beat])})
+               (btn :on-click #(on-click inst beat))))
+         (range (count (first (vals @pattern-cell)))))))
+     (keys @pattern-cell)))))
+
+;; ----------
+;; Initialize
+;; ----------
 
 (html
  (head)
@@ -43,8 +45,7 @@
     (slide
      (p (span "Why ")
         (span :class "fragment pink" "use functional programming techniques to ")
-        (span "write music on computers?"))
-     (p :class "fragment blue" "Abstraction"))
+        (span "write music on computers?")))
 
     (slide
      (img :src "images/schubert.png"))
@@ -53,10 +54,7 @@
      (img :src "images/protools.png"))
 
     (slide
-     (h1 "Abstraction")
-     (p :class "fragment" "Sequence processing")
-     (p :class "fragment" "Function composition")
-     (p :class "fragment" "Higher order functions")))
+     (h1 "Abstraction")))
 
    (chapter
     (slide
@@ -76,13 +74,13 @@
     (slide
      (p "How is this sound being made?")
      (img :src "images/sinewave.png")
-     (p :class "pink" "unit generators")))
+     (p :class "pink" "unit generators"))
+
+   (slide
+    (p "Combining unit generators")
+    (img :src "images/unitgenerators.png")))
 
    (chapter
-    (slide
-     (p "Combining unit generators")
-     (img :src "images/unitgenerators.png"))
-
     (slide
      (h2 "Demo 2: a filtered, detuned saw")
      (highlight
@@ -100,9 +98,10 @@
       ;;}}
       )
      (btn :on-click #(rpc/play-saw! 110) "Play")
-     (btn :on-click #(rpc/clear-engine!) "Stop"))
+     (btn :on-click #(rpc/clear-engine!) "Stop")))
 
-    (slide
+    (chapter
+     (slide
      (h2 "Demo 3: drum kit")
      (highlight
       ;;{{
@@ -119,16 +118,99 @@
                         (sum snare (butterbp (mul 3 snare) 100 100)))})
 
        (defn play-kit! [instrument]
-         (engine-add-afunc @e ((kit instrument))))
+         (add-afunc (kit instrument) 0.4))
       ;;}}
       )
      (map (fn [i] (btn :on-click #(do (println i) (rpc/play-kit! i)) (name i))) [:kick :hat :snare])))
 
-  (chapter
+   (chapter
     (slide
-     (grid :width 10 :height 8 :on-click (fn [x y] (println x y))
+     (h2 "Demo 4: Temporal Recursion")
+     (highlight
+      ;;{{
+      (defn play []
+        (add-audio-events
+         (event (kit :kick) 0.0)
+         (event (kit :snare) 0.5)
+         (event (kit :kick) 1.0)
+         (event (kit :snare) 1.5)
+         (event (kit :hat) 1.75)
+         (event play 2.0)))
+      ;;}}
+      )
+      (btn :on-click #(rpc/play-drum-loop!) "Play")
+      (btn :on-click #(rpc/clear-engine!) "Stop")))
 
-   ))))))
+   (chapter
+    (slide
+     (h2 "Demo 5: Pattern player")
+     (highlight
+      ;;{{
+      (defn pattern-player []
+        (let [n (atom 0)
+              pattern (atom nil)
+              tempo (atom 240)
+              playing (atom false)
+              trigger-fn (fn []
+                           (let [length (count (first (vals @pattern)))]
+                             (doseq [[inst beats] @pattern :when (beats @n)]
+                               (add-afunc ((kit inst))))
+                             (swap! n #(rem (inc %) length))))
+              clock (create-clock tempo trigger-fn)]
+          {:play! (fn [] (when-not @playing
+                           (add-post-cfunc clock)
+                           (reset! playing true)))
+           :stop! (fn [] (when @playing
+                           (remove-post-cfunc clock)
+                           (reset! playing false)))
+           :pattern pattern
+           :tempo tempo}))
+      ;;}}
+      ))
+
+    (let [_ false X true
+           pattern
+           (cell= (or (:pattern rpc/pattern)
+                      {:kick  [X _ _ _ X _ _ _ X _ _ _ X _ _ _]
+                       :snare [_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _]
+                       :hat   [_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _]}))
+          tempo (cell 120)]
+      (slide
+       (sequencer :pattern-cell pattern :on-click rpc/flip!)
+       (btn :on-click #(rpc/play-pattern! @pattern @tempo) "Play")
+       (btn :on-click #(rpc/stop-pattern!) "Stop")
+       (h2 (text "~{tempo} bpm"))
+       (btn :on-click (fn [] (swap! tempo #(- % 20)) (rpc/set-pattern-tempo! @tempo)) "Slower")
+       (btn :on-click (fn [] (swap! tempo #(+ % 20)) (rpc/set-pattern-tempo! @tempo)) "Faster")))
+
+    (let [key-player-on (cell false)
+          last-played-key (cell "")]
+      (slide
+       (with-init!
+         (.keydown (js/jQuery js/document)
+                   (fn [e]
+                     (when @key-player-on
+                       (let [k (.fromCharCode js/String (.-which e))]
+                         (rpc/note-on! k)
+                         (reset! last-played-key k)))))
+         (.keyup (js/jQuery js/document)
+                 (fn [e]
+                   (when @key-player-on
+                     (let [k (.fromCharCode js/String (.-which e))]
+                       (rpc/note-off! k)
+                       (reset! last-played-key ""))))))
+       (h1 :class "key-player" (text "[  ~{last-played-key}  ]"))
+       (btn :on-click #(swap! key-player-on not)
+            :text (cell= (if key-player-on "Off" "On"))))))
+   (chapter
+    (slide
+     (h1 "References")
+     (div (a :href "http://github.com/kunstmusik/pink" (span :class "pink" "Pink") (span :class "neutral" "http://github.com/kunstmusik/pink")))
+     (div (a :href "http://github.com/kunstmusik/score" (span :class "blue" "Score") (span :class "neutral" "https://github.com/kunstmusik/score"))))))))
+
+
+
+
 
 
 

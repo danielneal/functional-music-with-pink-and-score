@@ -51,11 +51,17 @@
   color:#13DAEC;
 }
 
-.grid-cell {
+.sequencer tr td:first-child {
+  vertical-align:middle;
+  text-align:right;
+  margin-right:1em;
+}
+
+.sequencer .grid-cell {
   padding:5px;
 }
 
-.grid-cell button {
+.sequencer .grid-cell button {
   padding:0;
   margin:0;
   border:0;
@@ -64,7 +70,7 @@
   background:#444455;
 }
 
-.grid-cell button:hover, .grid-cell.selected button {
+.sequencer .grid-cell button:hover, .grid-cell.selected button {
   background:#13daec;
 }
 
@@ -97,4 +103,8 @@ button:hover {
 
 .pink {
   color:#FF61AA !important;
+}
+
+.neutral {
+  color: #CCCCBB !important;
 }
