@@ -134,23 +134,31 @@
         (saw (mul f 1.5))
         (saw (mul f 2.0)))))
 
-(let [f 110
-      key-map (into {}
-                (map #(-> [(str (inc %2)) (double (* f %1))])
-                     [1 17/16 9/8 6/5 4/3 3/2 8/5 5/3 7/425]
-                     (range)))
-      notes (atom {})]
+(defn note-player [keymap inst]
+  (let [notes (atom {})]
+    {:note-on! (fn [k]
+                 (let [afn (inst (keymap k))]
+                   (when-not (get @notes k)
+                     (engine-add-afunc @e afn)
+                     (swap! notes assoc k afn))))
 
-  (defn note-on! [k]
-    (let [afn (power-saw (key-map k))]
-      (when-not (get @notes k)
-        (engine-add-afunc @e afn)
-        (swap! notes assoc k afn))))
+     :note-off! (fn [k]
+                  (when-let [afn (get @notes k)]
+                    (swap! notes dissoc k)
+                    (engine-remove-afunc @e afn)))}))
 
-  (defn note-off! [k]
-    (when-let [afn (get @notes k)]
-      (swap! notes dissoc k)
-      (engine-remove-afunc @e afn))))
+;; --------------------------------------
+;; Demo 7: Scoring
+;; --------------------------------------
+
+(defn arpeggiated
+  [pattern notes]
+  (let [s (->> notes
+               (iterate (partial map (partial * 2)))
+               (mapcat identity))]
+    (->> pattern
+         (cycle)
+         (map (partial nth s)))))
 
 
 

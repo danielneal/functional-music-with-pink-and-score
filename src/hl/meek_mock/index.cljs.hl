@@ -181,10 +181,31 @@
        (btn :on-click #(rpc/stop-pattern!) "Stop")
        (h2 (text "~{tempo} bpm"))
        (btn :on-click (fn [] (swap! tempo #(- % 20)) (rpc/set-pattern-tempo! @tempo)) "Slower")
-       (btn :on-click (fn [] (swap! tempo #(+ % 20)) (rpc/set-pattern-tempo! @tempo)) "Faster")))
+       (btn :on-click (fn [] (swap! tempo #(+ % 20)) (rpc/set-pattern-tempo! @tempo)) "Faster"))))
+
+   (chapter
+    (slide
+     (h2 "Demo 6: Note Player")
+     (highlight
+      ;;{{
+      (defn note-player
+        [keymap inst]
+        (let [notes (atom {})]
+          {:note-on! (fn [k]
+                       (let [afn (inst (keymap k))]
+                         (when-not (get @notes k)
+                           (add-afunc afn)
+                           (swap! notes assoc k afn))))
+
+           :note-off! (fn [k]
+                        (when-let [afn (get @notes k)]
+                          (swap! notes dissoc k)
+                          (remove-afunc afn)))}))
+      ;;}}
+      ))
 
     (let [key-player-on (cell false)
-          last-played-key (cell "")]
+          held-keys (cell #{})]
       (slide
        (with-init!
          (.keydown (js/jQuery js/document)
@@ -192,21 +213,24 @@
                      (when @key-player-on
                        (let [k (.fromCharCode js/String (.-which e))]
                          (rpc/note-on! k)
-                         (reset! last-played-key k)))))
+                         (swap! held-keys conj k)))))
          (.keyup (js/jQuery js/document)
                  (fn [e]
                    (when @key-player-on
                      (let [k (.fromCharCode js/String (.-which e))]
                        (rpc/note-off! k)
-                       (reset! last-played-key ""))))))
-       (h1 :class "key-player" (text "[  ~{last-played-key}  ]"))
+                       (swap! held-keys disj k))))))
+       (h1 :class "key-player" (text "~(apply str (interpose \\: (sort held-keys)))"))
        (btn :on-click #(swap! key-player-on not)
             :text (cell= (if key-player-on "Off" "On"))))))
+
    (chapter
     (slide
      (h1 "References")
      (div (a :href "http://github.com/kunstmusik/pink" (span :class "pink" "Pink") (span :class "neutral" "http://github.com/kunstmusik/pink")))
-     (div (a :href "http://github.com/kunstmusik/score" (span :class "blue" "Score") (span :class "neutral" "https://github.com/kunstmusik/score"))))))))
+     (div (a :href "http://github.com/kunstmusik/score" (span :class "blue" "Score") (span :class "neutral" "https://github.com/kunstmusik/score")))
+     (div (a :href "http://github.com/danielneal/meek-mock" (span :class "pink" "This") (span :class "neutral" "https://github.com/danielneal/meek-mock"))))))))
+
 
 
 
