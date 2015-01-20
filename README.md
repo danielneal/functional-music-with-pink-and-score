@@ -1,6 +1,9 @@
 # meek-mock
 
-A Hoplon project with Castra designed to...well, that part is up to you.
+A presentation on functional music using [pink][4] and [score][5], 
+with a few interactive goodies, including a pattern sequencer.
+
+You'll need to install boot - the original. And this *needs* java 1.7 for the sound magic to happen.
 
 ## Dependencies
 
@@ -16,16 +19,15 @@ A Hoplon project with Castra designed to...well, that part is up to you.
     $ boot development
     ```
 
-2. Go to [http://localhost:8000][3] in your browser. You should see "Hello,
-Hoplon and Castra!" with random numbers that are generated on the server and
-transmited to the client. But you should change that to what you want.
-
-3. You're already done.
+2. Go to [http://localhost:8000][3] in your browser. 
+Flip through the presentation using the arrow keys. 
 
 ## License
 
-Copyright © 2014, **Your Name Goes Here**
+Copyright © 2014, Daniel Neal
 
 [1]: https://github.com/tailrecursion/boot
 [2]: https://github.com/technomancy/leiningen
 [3]: http://localhost:8000
+[4]: https://github.com/kunstmusik/pink
+[5]: https://github.com/kunstmusik/score
