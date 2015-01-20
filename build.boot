@@ -10,7 +10,7 @@
                   [org.clojure/clojure "1.6.0"]
                   [kunstmusik/pink "0.1.0-SNAPSHOT"]
                   [kunstmusik/score "0.2.0-SNAPSHOT"]
-                  [io.hoplon/reveal "0.1.0"]]
+                  [org.clojars.danielneal/reveal "0.1.0"]]
   :out-path     "resources/public"
   :src-paths    #{"src/hl" "src/cljs" "src/clj"})
 
