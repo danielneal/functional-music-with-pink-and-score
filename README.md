@@ -1,9 +1,9 @@
-# meek-mock
+# Functional Music With Pink and Score
 
 A presentation on functional music using [pink][4] and [score][5], 
 with a few interactive goodies, including a pattern sequencer.
 
-You'll need to install boot - the original. And this *needs* java 1.7 for the sound magic to happen.
+You'll need to install [boot - the original](https://github.com/tailrecursion/boot). And this *needs* java 1.7 for the sound magic to happen.
 
 ## Dependencies
 
